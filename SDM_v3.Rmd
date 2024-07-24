@@ -308,7 +308,9 @@ sdm4_90 <- ggplot() +
 
 patchwork time!
 ```{r}
-current + sdm2_50 + sdm4_50 + plot_spacer()+ sdm2_90 + sdm4_90 + plot_layout(guides = 'collect')
+#current + 
+#sdm2_50 + sdm4_50 + plot_spacer()+ 
+sdm2_90 + sdm4_90 + plot_layout(guides = 'collect')
 ```
 
 ```{r}
@@ -347,5 +349,12 @@ write.csv(predict_ssp2_2050, "ssp2 2050 Predictions.csv")
 write.csv(predict_ssp4_2050, "ssp4 2050 Predictions.csv")
 write.csv(predict_ssp2_2090, "ssp2 2090 Predictions.csv")
 write.csv(predict_ssp4_2090, "ssp4 2090 Predictions.csv")
+```
+
+
+```{r}
+test_roc_acu_value = roc_auc(test_predict2_whaleshark, occurance_status, .pred_ABSENT)
+
+test_roc_acu_value
 ```
 
