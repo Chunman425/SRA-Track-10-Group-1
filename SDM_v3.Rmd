@@ -226,38 +226,6 @@ random_rast <- random_points_sf %>%
 ```
 
 
-```{r}
-world = st_read(here::here("Gulf_of_Mexico_uncropped"))
-
-ylims <- c(14.37, 31.14)
-xlims <- c(-80.63, -98.86)
-box_coords <- tibble(x = xlims, y = ylims) %>% 
-  st_as_sf(coords = c("x", "y")) %>% 
-  st_set_crs(st_crs(world))
-
-bounding_box <- st_bbox(box_coords) %>% st_as_sfc()
-
-world_subset <- st_intersection(world, bounding_box)
-
-
-#get the bounding box of the two x & y coordintates, make sfc
-bounding_box <- st_bbox(box_coords) %>% st_as_sfc()
-
-
-river_subset <- st_intersection(my_rivers, bounding_box)
-#gpt code
-matrix_ws <- matrix(c(-98.86, 14.37,
-                   -80.63, 14.37,
-                   -80.63, 31.14,
-                   -98.86, 31.14,
-                   -98.86, 14.37), ncol = 2, byrow = TRUE)
-
-polybox <- st_polygon(list(matrix_ws)) %>% 
-  st_sfc(crs = st_crs(world))
-  
-gulf <- st_intersection(polybox, world)
-```
-
 SDM woooo
 ```{r}
 predict_current = st_as_sf(predict_current)
@@ -272,7 +240,6 @@ making the plots
 ```{r}
 current <- ggplot() +
   geom_sf(data = predict_current, aes(color = .pred_PRESENT)) +
-  #geom_sf(data = world) +
   theme_bw() +
   scale_color_viridis_c(breaks = seq(0, 1, 0.25),
                         limits = c(0, 1)) +
@@ -280,7 +247,6 @@ current <- ggplot() +
 
 sdm2_50 <- ggplot() +
   geom_sf(data = predict_ssp2_2050, aes(color = .pred_PRESENT)) +
-  #geom_sf(data = gulf) +
   theme_bw() +
   scale_color_viridis_c(breaks = seq(0, 1, 0.25),
                         limits = c(0, 1)) +
@@ -288,7 +254,6 @@ sdm2_50 <- ggplot() +
 
 sdm4_50 <- ggplot() +
   geom_sf(data = predict_ssp4_2050, aes(color = .pred_PRESENT)) +
-  #geom_sf(data = gulf) +
   theme_bw() +
   scale_color_viridis_c(breaks = seq(0, 1, 0.25),
                         limits = c(0, 1)) +
@@ -296,7 +261,6 @@ sdm4_50 <- ggplot() +
 
 sdm2_90 <- ggplot() +
   geom_sf(data = predict_ssp2_2090, aes(color = .pred_PRESENT)) +
-  #geom_sf(data = gulf) +
   theme_bw() +
   scale_color_viridis_c(breaks = seq(0, 1, 0.25),
                         limits = c(0, 1)) +
@@ -304,7 +268,6 @@ sdm2_90 <- ggplot() +
 
 sdm4_90 <- ggplot() +
   geom_sf(data = predict_ssp4_2090, aes(color = .pred_PRESENT)) +
-  #geom_sf(data = gulf) +
   theme_bw() +
   scale_color_viridis_c(breaks = seq(0, 1, 0.25),
                         limits = c(0, 1)) +
@@ -327,7 +290,7 @@ world_map <-
 
 patchwork time!
 ```{r}
-current + sdm2_50 + sdm4_50+ world_map + sdm2_90 + sdm4_90 + plot_layout(ncol = 3, guides = 'collect', widths = 1) +
+current + sdm2_50 + sdm4_50+ world_map + sdm2_90 + sdm4_90 + plot_layout(ncol = 3, guides = 'collect', widths = 1.5) +
   plot_annotation(tag_levels = "A")
 ```
 
