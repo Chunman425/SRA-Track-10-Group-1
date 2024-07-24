@@ -275,7 +275,7 @@ current <- ggplot() +
 
 sdm2_50 <- ggplot() +
   geom_sf(data = predict_ssp2_2050, aes(color = .pred_PRESENT)) +
-  geom_sf(data = gulf) +
+  #geom_sf(data = gulf) +
   theme_bw() +
   scale_color_viridis_c() +
   labs(color = "Probability")+
@@ -283,7 +283,7 @@ sdm2_50 <- ggplot() +
 
 sdm4_50 <- ggplot() +
   geom_sf(data = predict_ssp4_2050, aes(color = .pred_PRESENT)) +
-  geom_sf(data = gulf) +
+  #geom_sf(data = gulf) +
   theme_bw() +
   scale_color_viridis_c() +
   labs(color = "Probability")+
@@ -291,7 +291,7 @@ sdm4_50 <- ggplot() +
 
 sdm2_90 <- ggplot() +
   geom_sf(data = predict_ssp2_2090, aes(color = .pred_PRESENT)) +
-  geom_sf(data = gulf) +
+  #geom_sf(data = gulf) +
   theme_bw() +
   scale_color_viridis_c() +
   labs(color = "Probability")+
@@ -299,7 +299,7 @@ sdm2_90 <- ggplot() +
 
 sdm4_90 <- ggplot() +
   geom_sf(data = predict_ssp4_2090, aes(color = .pred_PRESENT)) +
-  geom_sf(data = gulf) +
+  #geom_sf(data = gulf) +
   theme_bw() +
   scale_color_viridis_c() +
   labs(color = "Probability")+
