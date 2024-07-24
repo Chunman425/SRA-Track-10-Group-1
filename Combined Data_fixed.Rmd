@@ -1,0 +1,226 @@
+---
+title: "Combined Data"
+author: "Group 1 - Chunman, Connor, Chloeline"
+date: "2024-07-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message = FALSE,
+                      warning = FALSE)
+```
+
+```{r}
+# install.packages("devtools")
+#devtools::install_github("bio-oracle/biooracler")
+library(biooracler)
+library(tidyverse)
+library(stars)
+library(sf)
+library(terra)
+library(abind)
+library(patchwork)
+library(sp)
+library(dplyr)
+library(raster)
+
+```
+
+Establishing parameters (coordinates of the Gulf of Mexico)
+```{r}
+latitude = c(31.14, 14.37)
+longitude = c(-80.63, -98.86)
+```
+
+Present day data
+```{r}
+constraints1 = list(latitude, longitude)
+names(constraints1) = c("latitude", "longitude")
+
+
+#identifying data set for surface temperature
+temp_current <- download_layers(dataset_id = "thetao_baseline_2000_2019_depthsurf", variables = "thetao_mean", constraints = constraints1)
+
+
+#downloading layer to the according varibale 
+mld_current <- download_layers(dataset_id = "mlotst_baseline_2000_2019_depthsurf", variables = "mlotst_mean", constraints = constraints1)
+
+
+# downloading layer 
+chl_current <- download_layers(dataset_id = "chl_baseline_2000_2018_depthsurf", variables = "chl_mean", constraints = constraints1)
+
+#removing column for data points from 2000-2010 to leave only data for present 
+temp_current$thetao_mean_1 = NULL
+mld_current$mlotst_mean_1 = NULL
+chl_current$chl_mean_1 = NULL
+```
+
+
+------------
+2050 
+```{r}
+#reestablishing the time as 2050
+time2 = c('2050-01-01T00:00:00Z', '2050-01-01T00:00:00Z')
+constraints2 = list(time2, latitude, longitude)
+names(constraints2) = c("time", "latitude", "longitude")
+```
+
+2050 - ssp2 (45)
+```{r}
+#identifying data set for surface temperature
+
+temp_ssp2_2050 <- download_layers(dataset_id = "thetao_ssp245_2020_2100_depthsurf", variables = "thetao_mean", constraints = constraints2)
+
+
+#downloading layer to the according varibale 
+mld_ssp2_2050 <- download_layers(dataset_id = "mlotst_ssp245_2020_2100_depthsurf", variables = "mlotst_mean", constraints = constraints2)
+
+
+# downloading layer 
+chl_ssp2_2050 <- download_layers(dataset_id = "chl_ssp245_2020_2100_depthsurf", variables = "chl_mean", constraints = constraints2)
+```
+
+2050 - ssp4 (60)
+```{r}
+#identifying data set for surface temperature ssp4
+
+temp_ssp4_2050 <- download_layers(dataset_id = "thetao_ssp460_2020_2100_depthsurf", variables = "thetao_mean", constraints = constraints2)
+
+
+#downloading layer to the according varibale 
+mld_ssp4_2050 <- download_layers(dataset_id = "mlotst_ssp460_2020_2100_depthsurf", variables = "mlotst_mean", constraints = constraints2)
+
+
+# downloading layer 
+chl_ssp4_2050 <- download_layers(dataset_id = "chl_ssp460_2020_2100_depthsurf", variables = "chl_mean", constraints = constraints2)
+```
+
+------------
+2090 
+```{r}
+#reestablishing the time as 2090
+time3 = c('2090-01-01T00:00:00Z', '2090-01-01T00:00:00Z')
+constraints3 = list(time3, latitude, longitude)
+names(constraints3) = c("time", "latitude", "longitude")
+```
+
+2090 - ssp2 (45)
+```{r}
+temp_ssp2_2090 <- download_layers(dataset_id = "thetao_ssp245_2020_2100_depthsurf", variables = "thetao_mean", constraints = constraints3)
+
+
+#downloading layer to the according varibale 
+mld_ssp2_2090 <- download_layers(dataset_id = "mlotst_ssp245_2020_2100_depthsurf", variables = "mlotst_mean", constraints = constraints3)
+
+
+# downloading layer 
+chl_ssp2_2090 <- download_layers(dataset_id = "chl_ssp245_2020_2100_depthsurf", variables = "chl_mean", constraints = constraints3)
+```
+
+2090 - ssp4 (60)
+```{r}
+#identifying data set for surface temperature ssp4
+
+temp_ssp4_2090 <- download_layers(dataset_id = "thetao_ssp460_2020_2100_depthsurf", variables = "thetao_mean", constraints = constraints3)
+
+
+#downloading layer to the according varibale 
+mld_ssp4_2090 <- download_layers(dataset_id = "mlotst_ssp460_2020_2100_depthsurf", variables = "mlotst_mean", constraints = constraints3)
+
+
+# downloading layer 
+chl_ssp4_2090 <- download_layers(dataset_id = "chl_ssp460_2020_2100_depthsurf", variables = "chl_mean", constraints = constraints3)
+```
+
+
+Extracting the occurcances 
+```{r}
+# reading out the occurences 
+occurences = read_csv(here::here("data", "Raw", "GBIF_Occurance_data2.csv"))%>% 
+  dplyr::select(occurrenceStatus, decimalLatitude, decimalLongitude) %>% 
+  filter(!is.na(as.numeric(decimalLatitude))) %>% 
+  filter(!is.na(as.numeric(decimalLongitude)))  %>% 
+  filter(occurrenceStatus == "PRESENT") %>% 
+  st_as_sf(coords = c("decimalLongitude", "decimalLatitude"), crs = "EPSG:4326")
+
+```
+
+extracting the pseudo absences 
+```{r}
+#extracting 
+buffer_occurence = st_buffer(occurences, 5000)
+
+temp_crop_current = crop(temp_current, buffer_occurence)
+no_points = mask(temp_current, buffer_occurence, inverse=TRUE)
+
+# takes a while, but you'll want to change the number to get close to the number of occurences you have
+random_points = terra::spatSample(no_points, 10000, "random", na.rm=T, as.points=TRUE) %>% 
+  st_as_sf() #should be an sf dataframe
+
+class(random_points)
+
+random_points = random_points %>% 
+  filter(thetao_mean_2 > 0)%>% 
+  mutate(occurrenceStatus = "ABSENT")%>% 
+  dplyr::select(thetao_mean_2, occurrenceStatus)
+
+All_occurance <- rbind(occurences, random_points)
+```
+
+
+```{r}
+#temp <- terra::project(temp_current, crs(All_occurance))
+#temp_mean <- terra::extract(x = temp_2018, y = occurences)
+
+#temp_final <- temp_mean %>%
+#  dplyr::select("thetao_mean_2") %>%
+#  rename("mean_temp" = "thetao_mean_2")
+```
+
+
+```{r}
+
+testSet = c(
+  terra::extract(c(temp_current, 
+                   chl_current,
+                   mld_current,
+                   temp_ssp2_2050, temp_ssp4_2050, 
+                   chl_ssp2_2050, chl_ssp4_2050,
+                   mld_ssp2_2050, mld_ssp4_2050,
+                   temp_ssp2_2090, temp_ssp4_2090, 
+                   chl_ssp2_2090, chl_ssp4_2090,
+                   mld_ssp2_2090, mld_ssp4_2090), All_occurance)) %>%
+  cbind(All_occurance) 
+
+testSet$ID = NULL
+testSet = na.omit(testSet)
+
+names(testSet) <- c("temp_current", 
+                    "chl_current",
+                    "mld_current",
+                    "temp_ssp2_50","temp_ssp4_50",
+                    "chl_ssp2_50","chl_ssp4_50",
+                    "mld_ssp2_50", "mld_ssp4_50",
+                    "temp_ssp2_90","temp_ssp4_90",
+                    "chl_ssp2_90","chl_ssp4_90",
+                    "mld_ssp2_90", "mld_ssp4_90",
+                    "occurance_status", "geometry")
+```
+
+separating long and lad of point geometries 
+```{r}
+testSet2 <- testSet %>% 
+  dplyr::mutate(long = sf::st_coordinates(.)[,1],
+                lat = sf::st_coordinates(.)[,2],
+                )
+
+testSet2$geometry <- NULL
+```
+
+
+generating into csv
+```{r}
+write.csv(testSet2, "Data_of_everything_updated.csv")
+```
+
