@@ -309,4 +309,3 @@ test_roc_acu_value = roc_auc(test_predict2_whaleshark, occurance_status, .pred_A
 
 test_roc_acu_value
 ```
-
